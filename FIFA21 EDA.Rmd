@@ -1,0 +1,229 @@
+---
+title: "FIFA21 EDA"
+author: "Lee Kiat Kai"
+date: "4/5/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = TRUE}
+# First, read in the dataset
+fifa = read.csv("C:/Users/Kiat Kai/Desktop/NOTES/Y4S2/ST4248/Group Project/Data/FIFA21_clean_2.csv")
+
+library(ggplot2)
+require(scales)
+library(fmsb)
+```
+
+# Barplot of Preferred foot
+```{r, echo = TRUE}
+# Barplot of preferred foot
+ggplot(fifa, aes(Preferred.Foot, fill=Preferred.Foot)) + geom_bar()
+```
+
+# Piechart of International Reputation
+```{r, echo = TRUE}
+# Barplot of preferred foot
+ggplot(fifa, aes(as.factor(International.Reputation), 
+                 fill=as.factor(International.Reputation))) +
+              geom_bar(width = 1) + coord_polar(start=0) + 
+                scale_fill_brewer(palette="Dark2")
+```
+
+# Distribution of Wages
+```{r, echo = TRUE}
+# Distribution of wage
+wg = ggplot(fifa, aes(Wage)) + geom_histogram(binwidth=100000,fill="gray",color = "black",size=1) + 
+  labs(title="Distribution of Wage")
+wg + scale_x_continuous(labels = comma)
+```
+
+# Distribution of Overall Rating
+```{r, echo = TRUE}
+# Distribution of Overall
+ggplot(fifa, aes(Overall)) + geom_histogram(binwidth=5,fill="gray",color = "black",size=1) +
+  labs(title="Distribution of Overall")
+```
+
+# Distribution of Height and Weight
+```{r, echo = TRUE}
+# Distribution of Height and weight
+par(mfrow=c(2,1))
+ggplot(fifa, aes(Height)) + geom_histogram(binwidth=3,fill="#C4961A",color = "black",size=1) + 
+  labs(title="Distribution of Height")
+ggplot(fifa, aes(Weight)) + geom_histogram(binwidth=3,fill="#009E73",color = "black",size=1) +
+  labs(title="Distribution of Weight")
+```
+
+# Average overall w.r.t Nationality
+```{r, echo = TRUE}
+# Plot of average overall w.r.t Nationality
+national.overall = aggregate(fifa$Overall, list(fifa$Nationality), mean)
+national.overall = national.overall[order(-national.overall[,2]),]
+national.overall = national.overall[1:10,]
+ggplot(national.overall, aes(Group.1, x, fill=Group.1)) +
+  geom_col() + labs(y="Average Overall rating", x="Nationality") + 
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+
+# Plot of average potential w.r.t Club
+```{r, echo = TRUE}
+national.potential = aggregate(fifa$Potential, list(fifa$Nationality), mean)
+national.potential = national.potential[order(-national.potential[,2]),]
+national.potential = national.potential[1:10,]
+ggplot(national.potential, aes(Group.1, x, fill=Group.1)) +
+  geom_col(aes(fill = Group.1)) + labs(y="Average Potential rating", x="Nationality") + scale_x_discrete(guide = guide_axis(n.dodge=2)) 
+```
+
+
+# Plot of boxplot of overall w.r.t some Clubs that we may be interested in
+```{r, echo = TRUE}
+clubs.interested.in = subset(fifa, Club == c("Chelsea","Liverpool","Juventus",
+                                             "Inter","Totterham Hotspur",
+                                             "FC Barcelona","Real Madrid",
+                                             "Paris Saint-Germain","Arsenal"))
+ggplot(clubs.interested.in, aes(reorder(Club, -Overall, sum), Overall, fill=Club)) + geom_boxplot() + labs(y="Overall Rating", x="Clubs", title="Distribution of Overall Rating in Different Popular Clubs") + 
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+ggplot(clubs.interested.in, aes(reorder(Club, -Wage, sum), Wage, fill=Club)) + 
+  geom_boxplot() + labs(y="Overall Rating", x="Clubs", title="Distribution of Wage in Different Popular Clubs") + scale_y_continuous(labels = comma) +  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+
+# Plot of average potential w.r.t Clubs
+```{r, echo = TRUE}
+club.potential = aggregate(fifa$Potential, list(fifa$Club), mean)
+club.potential = club.potential[order(-club.potential[,2]),]
+club.potential = club.potential[1:10,]
+ggplot(club.potential, aes(Group.1, x, fill=Group.1)) +
+  geom_col() + labs(y="Average Potential rating", x="Club") + scale_x_discrete(guide = guide_axis(n.dodge=3)) 
+```
+
+# Top 10 earning wages of players currently
+```{r, echo = TRUE}
+top.wages = fifa[order(-fifa$Wage),][1:10,]
+ggplot(top.wages, aes(reorder(Name, -Wage, sum), Wage, fill=Name)) +
+  geom_col() + scale_y_continuous(labels = comma) + scale_fill_brewer(palette="Set3") +
+  labs(y="Wage", x="Players", title="Top 10 Wages") + 
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+
+# Top 10 left footed players and right footed players
+```{r, echo = TRUE}
+# Top 10 left footed players
+top.leftfoot = fifa[fifa$Preferred.Foot == "Left",]
+top.leftfoot = top.leftfoot[order(-top.leftfoot$Overall),][1:10,]
+top.leftfoot.table = data.frame(top.leftfoot$Name, top.leftfoot$Age, top.leftfoot$Club, top.leftfoot$Nationality)
+colnames(top.leftfoot.table) = c("Name","Age","Club","Nationality")
+top.leftfoot.table
+
+# Top 10 right footed players
+top.rightfoot = fifa[fifa$Preferred.Foot == "Right",]
+top.rightfoot = top.rightfoot[order(-top.rightfoot$Overall),][1:10,]
+top.rightfoot.table = data.frame(top.rightfoot$Name, top.rightfoot$Age, top.rightfoot$Club, top.rightfoot$Nationality)
+colnames(top.rightfoot.table) = c("Name","Age","Club","Nationality")
+top.rightfoot.table
+```
+
+# Creating a spider plot for different players statistics by wage
+
+
+## Lionel Messi Statistics
+```{r, out.width='45%', out.height='45%', fig.align='center', fig.show='hold', fig.cap='...', echo=FALSE}
+knitr::include_graphics('messi.png')
+
+par(mar=c(0, 0, 0, 0))
+messi.compare = fifa[fifa$Club == "FC Barcelona",][2,]
+messi.compare = subset(messi.compare, select = c(Name,Acceleration,ShotPower,ShortPassing,Dribbling,DefensiveAwareness,Strength))
+messi.compare = subset(data.frame(messi.compare, row.names = messi.compare$Name), select=-Name)
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+messi.compare <- rbind(rep(100,6) , rep(0,6) , messi.compare)
+
+radarchart( messi.compare  , axistype=1 , 
+            
+            #custom polygon
+            pcol=rgb(0.8,0.5,0.5,0.6) , pfcol=rgb(0.8,0.5,0.5,0.5) , plwd=3 , 
+            
+            #custom the grid
+            cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(20,100,20), cglwd=0.8,
+            
+            #custom labels
+            vlcex=0.8 
+)
+```
+
+
+## C.Pulisic Statistics
+```{r, out.width='45%', out.height='45%', fig.align='center', fig.show='hold', fig.cap='...', echo=FALSE}
+knitr::include_graphics('pulisic.png')
+
+par(mar=c(0,0,0,0))
+messi.compare = fifa[fifa$Club == "Chelsea",][17,]
+messi.compare = subset(messi.compare, select = c(Name,Acceleration,ShotPower,ShortPassing,Dribbling,DefensiveAwareness,Strength))
+messi.compare = subset(data.frame(messi.compare, row.names = messi.compare$Name), select=-Name)
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+messi.compare <- rbind(rep(100,5) , rep(0,5) , messi.compare)
+
+radarchart( messi.compare  , axistype=1 , 
+            
+            #custom polygon
+            pcol=rgb(0.2,0.5,0.5,0.9) , pfcol=rgb(0.2,0.5,0.5,0.5) , plwd=4 , 
+            
+            #custom the grid
+            cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(0,100,5), cglwd=0.8,
+            
+            #custom labels
+            vlcex=0.8 
+)
+```
+
+## Son Heung Min Statistics
+```{r, out.width='45%', out.height='45%', fig.align='center', fig.show='hold', fig.cap='...', echo=FALSE}
+knitr::include_graphics('Son.png')
+
+par(mar=c(0,0,0,0))
+messi.compare = fifa[fifa$Club == "Tottenham Hotspur",][6,]
+messi.compare = subset(messi.compare, select = c(Name,Acceleration,ShotPower,ShortPassing,Dribbling,DefensiveAwareness,Strength))
+messi.compare = subset(data.frame(messi.compare, row.names = messi.compare$Name), select=-Name)
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+messi.compare <- rbind(rep(100,6) , rep(0,6) , messi.compare)
+
+radarchart( messi.compare  , axistype=1 , 
+            
+            #custom polygon
+            pcol=rgb(0.4,0.3,0.8,0.4) , pfcol=rgb(0.4,0.3,0.8,0.5) , plwd=3 , 
+            
+            #custom the grid
+            cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(20,100,20), cglwd=0.8,
+            
+            #custom labels
+            vlcex=0.8 
+)
+```
+
+## Sergio Ramos Statistics
+```{r, out.width='45%', out.height='45%', fig.align='center', fig.show='hold', fig.cap='...', echo=FALSE}
+knitr::include_graphics('sergio ramos.png')
+
+par(mar=c(0,0,0,0))
+messi.compare = fifa[fifa$Club == "Real Madrid",][1,]
+messi.compare = subset(messi.compare, select = c(Name,Acceleration,ShotPower,ShortPassing,Dribbling,DefensiveAwareness,Strength))
+messi.compare = subset(data.frame(messi.compare, row.names = messi.compare$Name), select=-Name)
+# To use the fmsb package, I have to add 2 lines to the dataframe: the max and min of each variable to show on the plot!
+messi.compare <- rbind(rep(100,6) , rep(0,6) , messi.compare)
+
+radarchart( messi.compare  , axistype=1 , 
+            
+            #custom polygon
+            pcol=rgb(0.2,0.5,0.5,0.9) , pfcol=rgb(0.2,0.5,0.5,0.5) , plwd=3 , 
+            
+            #custom the grid
+            cglcol="grey", cglty=1, axislabcol="grey", caxislabels=seq(20,100,20), cglwd=0.8,
+            
+            #custom labels
+            vlcex=0.8 
+)
+```
